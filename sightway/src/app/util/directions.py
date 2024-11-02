@@ -3,8 +3,9 @@ from dotenv import load_dotenv
 import os
 import googlemaps
 import re
+import json
 
-load_dotenv(dotenv_path = '.env.local')
+load_dotenv(dotenv_path = '../../../.env.local')
 
 app = Flask(__name__)
 
@@ -60,11 +61,11 @@ def get_Directions(gmaps: googlemaps.Client, places: list):
             s = ' '.join(s)
             d["Instruction"] = s
             l.append(d)
-    l.insert(0, str(round(distance/1000,1)) + " km")
+    l.insert(0, {"distance" : str(round(distance/1000,1)) + " km"})
     if duration/60 < 60:
-        l.insert(1,str(round(duration/60)) + " mins")
+        l.insert(1, {"duration" : str(round(duration/60)) + " mins"})
     else:
         k = duration//3600
         duration -= k*3600
         l.insert(1,str(k) + " hrs " + str(round(duration/60)) + " mins")
-    return l  
+    return l
