@@ -8,7 +8,7 @@ import os
 import googlemaps
 import re
 
-load_dotenv(dotenv_path = '.env.local')
+load_dotenv(dotenv_path = './sightway/.env.local')
 
 def create_googlemaps_client(key):
     gmaps = googlemaps.Client(key)

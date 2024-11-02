@@ -9,7 +9,7 @@ import googlemaps
 import re
 from helper_functions import *
 
-load_dotenv(dotenv_path = '.env.local')
+load_dotenv(dotenv_path = './sightway/.env.local')
 
 app = Flask(__name__)
 CORS(app)
