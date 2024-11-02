@@ -1,7 +1,9 @@
 # Import necessary libraries
+import io
 import os
 from google.cloud import texttospeech
-from flask import Flask, request
+from flask import Flask, json, request, send_file
+from flask_cors import CORS
 
 app = Flask(__name__)
 
@@ -10,12 +12,12 @@ app = Flask(__name__)
 def test():
     return "Hello, World!"
 
-# GET request to convert text to speech
-@app.route("/text-to-speech", methods=["GET"])
+# POST request to convert text to speech
+@app.route("/text-to-speech", methods=["POST"])
 def text_to_speech():
     args = request.get_json()
-    text = args["text"]
-    language_code = args["language_code"]
+    text = args.get("text", "")
+    language_code = args.get("language_code", "en-US")
 
     client = texttospeech.TextToSpeechClient()
 
@@ -31,11 +33,10 @@ def text_to_speech():
 
     response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
 
-    with open("../../../public/output.mp3", "wb") as out:
-        out.write(response.audio_content)
+    audio_stream = io.BytesIO(response.audio_content)
+    audio_stream.seek(0)
 
-    return "Audio content written to output.mp3"
-
+    return send_file(audio_stream, mimetype="audio/mp3", as_attachment=True, download_name="audio.mp3")
 
 if __name__ == "__main__":
     app.run(debug=True)
