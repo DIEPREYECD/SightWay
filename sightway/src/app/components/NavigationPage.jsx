@@ -9,33 +9,27 @@ import {
   CardContent,
   LinearProgress,
   Divider,
-  useTheme
+  useTheme,
+  CircularProgress
 } from '@mui/material';
 
 import { PlayArrow, SkipNext, SkipPrevious, Pause, VolumeUp } from '@mui/icons-material';
 
- // Sample navigation steps
-const directions = [
-  "Walk straight for 50 meters",
-  "Turn right at the traffic signal",
-  "Continue straight past the convenience store",
-  "Your destination will be on the left"
-];
-
-const NavigationPage = () => {
+const NavigationPage = ({ directions, directionsSimple }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const [audioLoaded, setAudioLoaded] = useState(false);
   const theme = useTheme();
   
-
   const [audio, setAudio] = useState({});
 
 
-  const handleConvertTextToSpeech = async () => {
+  const handleConvertTextToSpeech = async (desired_text) => {
     try {
-      const text = directions.join(". ");
+      const text = directionsSimple.join(". ");
       const response = await fetch("api/text-to-speech", {
         method: "POST",
-        body: JSON.stringify({ text: text, language_code: "en-US" })
+        body: JSON.stringify({ text: desired_text, language_code: "en-US" })
       })
       
       if (!response.ok) {
@@ -46,6 +40,8 @@ const NavigationPage = () => {
       const url = URL.createObjectURL(blob);
 
       setAudio({ src: url, type: "audio/mp3" });
+      setAudioLoaded(true);
+      setAudioLoading(false);
 
     } catch (error) {
       console.error(error);
@@ -54,19 +50,26 @@ const NavigationPage = () => {
 
   const [currentStep, setCurrentStep] = useState(0);
 
-  const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, directions.length - 1));
+  const handleNext = async () => {
+    setAudioLoaded(false);
+    setAudioLoading(true);
+    setCurrentStep(prev => Math.min(prev + 1, directionsSimple.length - 1));
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
+    setAudioLoaded(false);
+    setAudioLoading(true);
     setCurrentStep(prev => Math.max(prev - 1, 0));
   };
 
-  const progress = ((currentStep + 1) / directions.length) * 100;
-
   useEffect(() => {
-    if (directions.length > 0) handleConvertTextToSpeech();
-  }, [directions]);
+    if (directionsSimple.length > 0) 
+      {
+        handleConvertTextToSpeech(directionsSimple[currentStep]);
+      }
+  }, [currentStep]);
+
+  const progress = ((currentStep + 1) / directionsSimple.length) * 100;
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -95,7 +98,7 @@ const NavigationPage = () => {
           </Typography>
           
           <Typography variant="body1" sx={{ my: 3, fontSize: '1.2rem' }}>
-            {directions[currentStep]}
+            {directionsSimple[currentStep]}
           </Typography>
 
           <Box sx={{ width: '100%', mb: 2 }}>
@@ -110,7 +113,7 @@ const NavigationPage = () => {
           </Box>
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Step {currentStep + 1} of {directions.length}
+            Step {currentStep + 1} of {directionsSimple.length}
           </Typography>
 
           {/* Navigation Controls */}
@@ -149,7 +152,7 @@ const NavigationPage = () => {
 
             <IconButton
               onClick={handleNext}
-              disabled={currentStep === directions.length - 1}
+              disabled={currentStep === directionsSimple.length - 1}
               aria-label="Next step"
               size="large"
             >
@@ -160,7 +163,7 @@ const NavigationPage = () => {
       </Card>
 
       {/* Audio Player Card */}
-      {audio.src && (
+      {audio.src && audioLoaded && (
         <Card elevation={3}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -174,6 +177,7 @@ const NavigationPage = () => {
           
           <Box sx={{ width: '100%' }}>
             <audio
+              autoPlay={isPlaying}
               controls
               style={{ width: '100%' }}
               aria-label="Navigation audio"
@@ -185,6 +189,7 @@ const NavigationPage = () => {
           </CardContent>
         </Card>
       )}
+      {audioLoading && <CircularProgress />}
     </Container>
   );
 };

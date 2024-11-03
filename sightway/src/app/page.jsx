@@ -4,17 +4,12 @@ import Image from "next/image";
 import { useState } from "react";
 import { Box } from "@mui/material";
 import NavigationPage from "./components/NavigationPage";
+import TargetLocation from "./components/TargetLocation";
+import AIRecommend from "./components/AIRecommend";
 
 export default function Home() {
-  const directions = [
-    "Head north on Starting Street.",
-    "Turn right onto Next Street.",
-    "Continue straight for about 1 mile.",
-    "Merge onto Highway X via the ramp on the right.",
-    "Take Exit Y toward Destination Sign/Street.",
-    "Turn left onto Final Street.",
-    "Your destination will be on the left."
-  ]
+  const [directions, setDirections] = useState([]);
+  const [directionsSimple, setDirectionsSimple] = useState([]);
 
   return (
     <Box
@@ -29,7 +24,11 @@ export default function Home() {
         backgroundColor: 'background.default'
       }}
     >
-      <NavigationPage directions={directions} />
+      {/* Collect the user's target location */}
+      { directions.length === 0 && <TargetLocation setDirections={setDirections} setDirectionsSimple={setDirectionsSimple} /> }
+      {/* Navigation Page */}
+      { directions.length > 0 && (<NavigationPage directions={directions} directionsSimple={directionsSimple} />) }
+      
     </Box>
   );
 }
